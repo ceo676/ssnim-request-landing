@@ -186,38 +186,50 @@ async function sendAccept() {
                 status: "accepted"
             };
 
-           try {
-                // 1. [데이터 기록] 구글 시트로 전송 (이건 공통이라 그대로 둡니다)
-                await fetch("https://script.google.com/macros/s/AKfycbwJ8jcshxR6HcNknmLkjRdeT0NMw8d4-o9Z1hAWxdryi8pzocXZveDp_pmF1PpnKkcF/exec", {
-                    method: "POST", mode: "no-cors", body: JSON.stringify(payload)
-                });
+           async function sendAccept() {
+    // ... (상단 가격/장소/금칙어 체크 로직은 그대로 두세요)
 
-                // 2. [알림 분기] 1:1이냐 외부레슨이냐에 따라 자피어 주소를 결정합니다.
-                const ZAPIER_EXTERNAL = "https://hooks.zapier.com/hooks/catch/27197789/ujl6khu/"; // 외부레슨용
-                const ZAPIER_1ON1 = "https://hooks.zapier.com/hooks/catch/27197789/ujdmj18/";     // 1:1 매칭 성공용
+    submitBtn.disabled = true;
+    submitBtn.innerText = "처리 중...";
 
-                // sendType에 '1:1'이 포함되어 있으면 1:1 주소로, 아니면 외부레슨 주소로 쏩니다.
-                const webhookUrl = sendType.includes('1:1') ? ZAPIER_1ON1 : ZAPIER_EXTERNAL;
+    const paymentUrl = `https://rlaeodn1015-oss.github.io/ssnim-request-landing/pay.html?requestId=${requestId}&price=${price}&name=${encodeURIComponent(name)}`;
+    
+    const payload = {
+        // ... (페이로드 구성도 그대로 두세요)
+    };
 
-                await fetch(webhookUrl, { 
-                    method: "POST", 
-                    mode: "no-cors", 
-                    body: JSON.stringify(payload) 
-                });
+    try {
+        // [수정] 1. 구글 시트 직접 호출은 '로딩 방해'가 심하므로 제거하거나 비동기로만 실행
+        // (Zapier에서 시트 기록을 하신다면 이 블록은 지우는 것이 베스트입니다)
+        fetch("https://script.google.com/macros/s/AKfycbwJ8jcshxR6HcNknmLkjRdeT0NMw8d4-o9Z1hAWxdryi8pzocXZveDp_pmF1PpnKkcF/exec", {
+            method: "POST",
+            body: JSON.stringify(payload)
+        }).catch(e => console.log("시트 전송 대기 중 (Zapier가 처리 예정)"));
 
-                // 알림창도 센스 있게 분기
-                const successMsg = sendType.includes('1:1') ? "✅ 1:1 레슨 매칭 수락 완료!" : "✅ 견적서 발송 완료!";
-                alert(successMsg);
-                
-                // 완료 후 카톡 채널로 이동
-                window.location.href = "https://pf.kakao.com/_kxawRn/chat"; 
+        // [수정] 2. 알림톡 및 시트 적재를 담당할 Zapier 주소 결정
+        const ZAPIER_EXTERNAL = "https://hooks.zapier.com/hooks/catch/27197789/ujl6khu/";
+        const ZAPIER_1ON1 = "https://hooks.zapier.com/hooks/catch/27197789/ujdmj18/";
+        const webhookUrl = sendType.includes('1:1') ? ZAPIER_1ON1 : ZAPIER_EXTERNAL;
 
-           } catch (err) {
-                alert("오류 발생: " + err.message);
-                submitBtn.disabled = false;
-                submitBtn.innerText = "견적 승인 및 카톡 발송";
-            }
-        } // <--- 이 'sendAccept' 함수를 닫는 중괄호가 꼭 있어야 합니다!
+        // [수정] 3. Zapier로 전송 (headers 추가, mode 제거)
+        await fetch(webhookUrl, { 
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload) 
+        });
+
+        // [수정] 4. 성공 알림 및 이동
+        const successMsg = sendType.includes('1:1') ? "✅ 1:1 레슨 매칭 수락 완료!" : "✅ 견적서 발송 완료!";
+        alert(successMsg);
+        
+        window.location.href = "https://pf.kakao.com/_kxawRn/chat"; 
+
+    } catch (err) {
+        alert("전송 중 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        submitBtn.disabled = false;
+        submitBtn.innerText = "견적 승인 및 카톡 발송";
+    }
+}
     </script>
 </body>
 </html>
