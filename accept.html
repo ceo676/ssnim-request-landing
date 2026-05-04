@@ -101,13 +101,13 @@
         };
 
         async function sendAccept() {
-            const price = document.getElementById('finalPriceInput').value;
-            const location = document.getElementById('lessonLocation').value;
-            const note = document.getElementById('proNote').value;
-            const submitBtn = document.getElementById('submitBtn');
+    const price = document.getElementById('finalPriceInput').value;
+    const location = document.getElementById('lessonLocation').value;
+    const noteInput = document.getElementById('proNote').value; // ★이 줄이 반드시 있어야 합니다!
+    const submitBtn = document.getElementById('submitBtn');
 
-            if (!price || parseInt(price) < 100) return alert("올바른 가격을 입력해주세요!");
-            if (!location) return alert("레슨 장소를 입력해주세요!");
+    if (!price || parseInt(price) < 100) return alert("올바른 가격을 입력해주세요!");
+    if (!location) return alert("레슨 장소를 입력해주세요!");
 
     // [보안 필터링]
     const combinedText = (location + note).replace(/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/g, "").toLowerCase();
@@ -154,30 +154,30 @@
             const paymentUrl = `https://rlaeodn1015-oss.github.io/ssnim-request-landing/pay.html?requestId=${requestId}&price=${price}&name=${encodeURIComponent(name)}`;
             
             const payload = {
-    action: "createRequest",
-    requestId: requestId,
-    name: name,
-    contact: contact,
-    proContact: proContact,
-    personCount: personCount, 
-    type: sendType,
-    lessoncount: String(lessonCount).replace("회", "").trim(), 
-    SCHEDULE: schedule,
-    LOCATION: location,
-    PRONOTE: noteInput || "별도 안내 사항 없음", // 이건 프로가 쓴 안내사항입니다.
-    selectedpro: selectedPro,
-    price: price,
-    paymentUrl: paymentUrl,
-    status: "accepted",
-    club: club,       
-    concern: note     
-};
+        action: "createRequest",
+        requestId: requestId,
+        name: name,
+        contact: contact,
+        proContact: proContact,
+        personCount: personCount, 
+        type: sendType,
+        lessoncount: String(lessonCount).replace("회", "").trim(), 
+        SCHEDULE: schedule,
+        LOCATION: location,
+        PRONOTE: noteInput || "별도 안내 사항 없음", // 여기서 noteInput을 사용합니다.
+        selectedpro: selectedPro,
+        price: price,
+        paymentUrl: paymentUrl,
+        status: "accepted",
+        club: club,       
+        concern: note // URL에서 가져온 소비자의 고민사항
+    };
 
             try {
-        // 1. 구글 시트로 비동기 전송 (응답 안 기다림)
+        // 1. 구글 시트로 비동기 전송
         fetch("https://script.google.com/macros/s/AKfycbwJ8jcshxR6HcNknmLkjRdeT0NMw8d4-o9Z1hAWxdryi8pzocXZveDp_pmF1PpnKkcF/exec", {
             method: "POST",
-            mode: "no-cors", // 보안 정책 해결을 위해 다시 추가
+            mode: "no-cors",
             body: JSON.stringify(payload)
         }).catch(e => console.log("Google Script 전송 예약됨"));
 
@@ -186,20 +186,17 @@
         const ZAPIER_1ON1 = "https://hooks.zapier.com/hooks/catch/27197789/ujdmj18/";
         const webhookUrl = sendType.includes('1:1') ? ZAPIER_1ON1 : ZAPIER_EXTERNAL;
 
-        // [중요] Zapier 전송 시도
-        const response = await fetch(webhookUrl, { 
+        await fetch(webhookUrl, { 
             method: "POST",
-            mode: "no-cors", // 보안 충돌 방지를 위해 no-cors 사용
+            mode: "no-cors", 
             body: JSON.stringify(payload) 
         });
 
-        // 전송 성공 시
         alert(sendType.includes('1:1') ? "✅ 1:1 레슨 매칭 수락 완료!" : "✅ 견적서 발송 완료!");
         window.location.href = "https://pf.kakao.com/_kxawRn/chat"; 
 
     } catch (err) {
-        // 여기서 상세 에러를 찍어줍니다.
-        alert("🚨 전송 에러 발생: " + err.message + "\n자피어 주소가 꺼져있는지 확인하세요!");
+        alert("🚨 전송 에러 발생: " + err.message);
         submitBtn.disabled = false;
         submitBtn.innerText = "견적 승인 및 카톡 발송";
     }
