@@ -1212,32 +1212,225 @@ const submitRequest = async () => {
         </div>
     `;
 
-    if (step === 2) return html`
-        <div className="animate-slide-up text-left">
+  if (step === 2) {
+    const type = formData.type || "";
+    let categories = {};
+
+    if (type.includes("숏게임") || type.includes("파3")) {
+
+    categories = {
+
+        "웨지/어프로치": [
+            '100m 이내 거리 조절',
+            '어프로치 거리감',
+            '로브샷/피치샷',
+            '웨지 스핀 컨트롤',
+            '짧은 거리 뒤땅',
+            '붙이는 어프로치',
+            '다운블로 컨택',
+            '거리별 탄도 조절',
+            '핀 주변 공략',
+            '웨지 정확도'
+        ],
+
+        "그린 주변": [
+            '벙커샷 탈출',
+            '러프/트러블 대응',
+            '굴리는 칩샷',
+            '어프로치 입스',
+            '짧은 거리 실수',
+            '실전 숏게임',
+            '내리막/오르막 어프로치',
+            '런닝어프로치',
+            '잔디별 대응',
+            '붙이는 숏게임'
+        ],
+
+        "퍼팅/스코어": [
+            '3퍼트 줄이기',
+            '퍼팅 거리감',
+            '짧은 퍼트 불안',
+            '실전 스코어 감소',
+            '파3 실전 레슨',
+            '퍼팅 방향성',
+            '롱퍼트 거리감',
+            '숏퍼트 성공률',
+            '라인 읽기',
+            '실전 퍼팅 루틴'
+        ]
+
+    };
+
+} else if (type.includes("필드") || type.includes("라운딩")) {
+
+    categories = {
+
+        "티샷/드라이버": [
+            '악성 슬라이스',
+            '악성 훅',
+            '드라이버 비거리',
+            '티샷 방향성',
+            'OB 줄이기',
+            '티샷 자신감',
+            '페이드/드로우 구사',
+            '드라이버 탄도',
+            '페어웨이 안착률',
+            '드라이버 정확도'
+        ],
+
+        "실전 플레이": [
+            '경사면 대응',
+            '트러블샷',
+            '코스 매니지먼트',
+            '클럽 선택',
+            '필드 멘탈',
+            '라운딩 운영',
+            '유틸/우드 활용',
+            '바람 대응 샷',
+            '라이별 공략',
+            '실전 루틴'
+        ],
+
+        "스코어/퍼팅": [
+            '100타 깨기',
+            '90타 도전',
+            '퍼팅 거리감',
+            '3퍼트 방지',
+            '실전 스코어 관리',
+            '숏퍼트 불안',
+            '위기관리/리커버리',
+            '퍼팅 라인 읽기',
+            '실전 집중력',
+            '스코어 줄이기'
+        ]
+
+    };
+
+} else {
+
+    categories = {
+
+        "구질/비거리": [
+            '슬라이스 교정',
+            '훅 교정',
+            '비거리 증가',
+            '탄도 조절',
+            '드라이버 방향성',
+            '아이언 거리',
+            '구질 안정화',
+            '발사각 교정',
+            '드라이버 정확도',
+            '비거리 편차'
+        ],
+
+        "스윙 교정": [
+            '바디스윙',
+            '체중이동',
+            '스윙 궤도',
+            '임팩트 교정',
+            '힘 빼는 스윙',
+            '헤드 스피드',
+            '치킨윙 교정',
+            '릴리즈 타이밍',
+            '헤드업 교정',
+            '샬로윙',
+            '레깅',
+            '다운스윙 순서',
+            '손목 사용 교정',
+            '캐스팅 교정',
+            '얼리익스텐션'
+        ],
+
+        "정확도/기초": [
+            '뒤땅/탑볼',
+            '생크 교정',
+            '자세 교정',
+            '그립 교정',
+            '초보 레슨',
+            '몸 안 아픈 스윙',
+            '오버스윙 교정',
+            '피니시 밸런스',
+            '템포/리듬',
+            '아이언 정확도'
+        ]
+
+    };
+
+}
+
+    const activeTab = formData.activeTab || Object.keys(categories)[0];
+
+    return html`
+        <div class="animate-slide-up text-left">
             <${CumulativeUI} />
-            <div className="flex justify-between items-center mb-8">
-                <h3 className="text-2xl font-black text-slate-800 tracking-tight">STEP 2 / 3</h3>
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-2xl font-black text-slate-800 tracking-tight">STEP 2 / 3</h3>
             </div>
-            <div className="space-y-8">
+            
+            <div class="space-y-10">
                 <div>
-                    <p className="text-[11px] font-black text-slate-400 mb-3 uppercase tracking-widest">교정 클럽</p>
-                    <div className="grid grid-cols-3 gap-2">
-                        ${['드라이버', '우드/유틸', '롱아이언', '숏아이언', '웨지/숏게임', '퍼터'].map(c => html`<button key=${c} onClick=${() => updateData('club', c)} className=${`py-3 rounded-xl border-2 font-bold text-xs transition-all ${formData.club === c ? 'border-brand-blue bg-blue-50 text-brand-blue shadow-md' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}>${c}</button>`)}
+                    <p class="text-[11px] font-black text-slate-400 mb-3 uppercase tracking-widest">교정 클럽</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        ${['드라이버', '우드/유틸', '롱아이언', '숏아이언', '웨지/숏게임', '퍼터'].map(c => html`
+                            <button key=${c} 
+                                onClick=${() => updateData('club', c)} 
+                                class=${`py-3 rounded-xl border-2 font-bold text-xs transition-all ${formData.club === c ? 'border-brand-blue bg-blue-50 text-brand-blue shadow-md' : 'border-slate-100 text-slate-400'}`}>
+                                ${c}
+                            </button>
+                        `)}
                     </div>
                 </div>
+
                 <div>
-                    <p className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-widest">골프 고민 (중복 선택 가능)</p>
-                    <div className="flex flex-wrap gap-2">
-                        ${['슬라이스 교정', '훅 교정', '비거리/탄도', '바디스윙', '체중이동', '생크/임팩 교정', '뒤땅/탑볼', '스윙 궤도', '자세 교정', '퍼터 교정', '초보 레슨', '부상 레슨'].map(con => html`<button key=${con} onClick=${() => updateConcern(con)} className=${`py-3 px-4 rounded-full border-2 font-bold text-xs transition-all ${formData.concern.includes(con) ? 'border-brand-blue bg-blue-50 text-brand-blue shadow-md' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}># ${con}</button>`)}
+                    <p class="text-xs font-bold text-slate-400 mb-4 uppercase tracking-widest">상세 고민 (중복 가능)</p>
+                    
+                    <div class="flex border-b border-slate-100 mb-5 overflow-x-auto whitespace-nowrap no-scrollbar space-x-5">
+                        ${Object.keys(categories).map(tab => html`
+                            <button 
+                                onClick=${() => updateData('activeTab', tab)}
+                                class=${`pb-2 font-black text-sm transition-all ${activeTab === tab ? 'text-brand-blue border-b-2 border-brand-blue' : 'text-slate-300'}`}
+                            >
+                                ${tab}
+                            </button>
+                        `)}
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 min-h-[160px] content-start">
+                        ${categories[activeTab].map(con => html`
+                            <button key=${con} 
+                                onClick=${() => updateConcern(con)} 
+                                class=${`py-2.5 px-4 rounded-full border-2 font-bold text-xs transition-all ${formData.concern.includes(con) ? 'border-brand-blue bg-blue-50 text-brand-blue shadow-md' : 'border-slate-100 text-slate-400'}`}>
+                                # ${con}
+                            </button>
+                        `)}
+                        
+                        <button 
+                            type="button"
+                            onClick=${() => {
+                                const val = window.prompt("현재 고민을 자유롭게 입력해주세요.");
+                                if (val && val.trim()) updateConcern(val.trim());
+                            }} 
+                            class="py-2.5 px-4 rounded-full border-2 border-dashed border-slate-200 text-slate-400 font-bold text-xs hover:border-brand-blue hover:text-brand-blue transition-all"
+                        >
+                            + 직접 입력하기
+                        </button>
                     </div>
                 </div>
             </div>
-            <div className="flex gap-4 mt-12">
-                <button onClick=${prevStep} className="flex-1 bg-slate-100 text-slate-500 font-black py-4 rounded-2xl">이전</button>
-                <button disabled=${!formData.club || formData.concern.length === 0} onClick=${nextStep} className="flex-[2] gradient-blue text-white font-black py-4 rounded-2xl shadow-xl disabled:opacity-30 btn-glow">다음 단계로 이동</button>
+
+            <div class="flex gap-4 mt-12">
+                <button onClick=${prevStep} class="flex-1 bg-slate-100 text-slate-500 font-black py-4 rounded-2xl">이전</button>
+                <button 
+                    disabled=${!formData.club || formData.concern.length === 0} 
+                    onClick=${nextStep} 
+                    class="flex-[2] gradient-blue text-white font-black py-4 rounded-2xl shadow-xl disabled:opacity-30 btn-glow"
+                >
+                    다음 단계로 이동
+                </button>
             </div>
         </div>
     `;
+}
 
     if (step === 3) return html`
         <div className="animate-slide-up text-left relative">
@@ -1804,3 +1997,4 @@ createRoot(rootEl).render(html`<${App} />`);
 </script>
 </body>
 </html>
+
