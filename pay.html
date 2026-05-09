@@ -51,7 +51,14 @@
                 결제 링크 지인에게 공유하기
             </button>
         </div>
-
+        
+<div class="mb-6 space-y-2">
+    <p class="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">알림톡 받으실 번호</p>
+    <input type="tel" id="user-phone" placeholder="번호만 입력 (- 제외)" 
+        class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-600 font-bold text-slate-700 transition-all">
+    <p class="text-[10px] text-slate-400 font-medium ml-1">※ 결제 완료 시 이 번호로 레슨 확정 알림톡이 발송됩니다.</p>
+</div>
+        
         <button onclick="requestBootpay()" id="pay-btn" class="w-full bg-blue-600 text-white font-black py-5 rounded-[1.5rem] shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all text-lg">
             지금 결제하기
         </button>
@@ -86,6 +93,25 @@
                 price: paidAmt,
                 name: userName
             };
+
+            // --- 솔라피 알림톡 전송 로직 추가 (기존 데이터 유지) ---
+            const userPhone = params.get('phone') || ""; // URL에서 번호 추출
+            
+            if (userPhone) {
+                const solapiZapierUrl = "https://hooks.zapier.com/hooks/catch/27197789/4y901so/"; 
+                fetch(solapiZapierUrl, {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify({
+                        "status": "paid",
+                        "phone": userPhone,
+                        "name": userName,
+                        "price": paidAmt,
+                        "requestId": reqId,
+                        "type": "JOIN_ALIMTALK" 
+                    })
+                });
+            }
 
             const zapierUrl = "https://hooks.zapier.com/hooks/catch/27197789/ujdmj18/";
             const zapierData = {
@@ -153,32 +179,35 @@
     }
 
     async function requestBootpay() {
-        if (finalPayPrice < 100) return alert("결제 금액이 너무 낮습니다.");
-        
-        const successRedirect = window.location.origin + window.location.pathname + 
-                        "?status=done&requestId=" + requestId + 
-                        "&price=" + finalPayPrice + 
-                        "&name=" + encodeURIComponent(name) + 
-                        "&personCount=" + encodeURIComponent(personCount + "인");
+    const phoneInput = document.getElementById('user-phone').value.replace(/[^0-9]/g, '');
+    if (phoneInput.length < 10) return alert("알림톡을 받을 정확한 핸드폰 번호를 입력해주세요.");
+    if (finalPayPrice < 100) return alert("결제 금액이 너무 낮습니다.");
+    
+    const successRedirect = window.location.origin + window.location.pathname + 
+                            "?status=done&requestId=" + requestId + 
+                            "&price=" + finalPayPrice + 
+                            "&name=" + encodeURIComponent(name) + 
+                            "&personCount=" + encodeURIComponent(personCount + "인") +
+                            "&phone=" + phoneInput;
 
-        Bootpay.requestPayment({
-            "application_id": "67ecd171d9af4e5c6d21736b",
-            "price": finalPayPrice,
-            "order_name": "스승님 골프 레슨비",
-            "order_id": requestId,
-            "pg": "nicepay",
-            "methods": ["card", "kakao"],
-            "user": { "username": name },
-            "extra": { 
-                "open_type": "redirect", 
-                "display_success_result": false, 
-                "redirect_url": successRedirect, 
-                "v2_redirect_mode": false,
-                "popup": false,
-                "method": "GET"
-            }
-        });
-    }
+    Bootpay.requestPayment({
+        "application_id": "67ecd171d9af4e5c6d21736b",
+        "price": finalPayPrice,
+        "order_name": "스승님 골프 레슨비",
+        "order_id": requestId,
+        "pg": "nicepay",
+        "methods": ["card", "kakao"],
+        "user": { "username": name },
+        "extra": { 
+            "open_type": "redirect", 
+            "display_success_result": false, 
+            "redirect_url": successRedirect, 
+            "v2_redirect_mode": false,
+            "popup": false,
+            "method": "GET"
+        }
+    });
+}
 
     function sharePaymentLink() {
         const currentUrl = window.location.href;
