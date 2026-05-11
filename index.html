@@ -1245,17 +1245,41 @@ const RealTimeStatus = () => {
     const [loadingIdx, setLoadingIdx] = React.useState(0);
     const [results, setResults] = React.useState([]);
     const [selectedPro, setSelectedPro] = React.useState(null);
-    const [rematchCount, setRematchCount] = React.useState(0);
     const [userInfo, setUserInfo] = React.useState({ name: '', contact: '' });
-    const [policyOpen, setPolicyOpen] = React.useState(false);
     const [formData, setFormData] = React.useState({
-        location: '',
-        lessonType: '',
-        isJoinable: false,  // [추가] 조인 희망 여부
-        club: '',
-        concern: [], 
-        schedule: ''
+        location: '', lessonType: '', isJoinable: false,
+        personCount: '1인', club: '', concern: [],
+        schedule: '', price: '', lessonDate: ''
     });
+React.useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        
+        if (params.has('location') || params.has('selectedPro')) {
+            console.log("거절/재진입 데이터 복구 시작...");
+            
+            const recoveredProName = params.get('selectedPro');
+            const foundPro = pros.find(p => p.name === recoveredProName);
+
+            const recoveredData = {
+                location: params.get('location') || '',
+                lessonType: params.get('type') || '',
+                lessonCount: params.get('personCount') || '1인',
+                isJoinable: params.get('personCount')?.includes('조인') || false,
+                club: params.get('club') || '',
+                concern: params.get('note') ? params.get('note').split(',') : [], 
+                schedule: params.get('schedule') || '',
+                price: params.get('price') || '',
+                lessonDate: params.get('date') || ''
+            };
+            
+            setFormData(prev => ({ ...prev, ...recoveredData }));
+            if (foundPro) setSelectedPro(foundPro);
+            
+            // 데이터를 복구한 후 바로 분석 화면(Step 5)으로 넘겨서 
+            // 다시 매칭 결과를 보여주는 흐름이 소비자 입장에서 가장 자연스럽습니다.
+            startAnalysis(); 
+        }
+    }, []);
 
             const handleShare = async () => {
     const shareData = {
