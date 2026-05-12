@@ -133,13 +133,13 @@
                 const isNotOneOnOne = !lessonType.includes("1:1") && lessonType !== "레슨";
 
                 if (userPhone && isExternal && isNotOneOnOne) {
-                    const solapiZapierUrl = "https://hooks.zapier.com/hooks/catch/27197789/4y901so/"; 
-                    await fetch(solapiZapierUrl, {
-                        method: "POST", mode: "no-cors",
-                        body: JSON.stringify(zapierData)
-                    });
-                    console.log("외부 레슨 즉시 알림톡 발송");
-                }
+    const solapiZapierUrl = "https://hooks.zapier.com/hooks/catch/27197789/4y901so/"; 
+    
+    // fetch 대신 가장 확실한 전송 방식 사용
+    navigator.sendBeacon(solapiZapierUrl, JSON.stringify(zapierData));
+    
+    console.log("외부 레슨 데이터 자피어로 강제 전송 완료");
+}
 
                 location.replace("success.html?v=" + new Date().getTime());
             } catch (e) {
