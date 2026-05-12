@@ -50,7 +50,7 @@
             <div>
                 <label class="text-xs font-black text-slate-400 mb-2 block ml-1">스승님 추가 안내 사항 (비용/시간/주차 등)</label>
                 <textarea id="proNote" rows="6" 
-            placeholder="[레슨 실행을 위한 필수 정보를 작성해주세요]
+            placeholder="[레슨을 위한 필수 정보를 작성해주세요]
 1. 상세장소: OO스튜디오 OO점
 2. 시설이용료: 룸 이용료/입장료 현장 별도 결제 안내 (예: 룸비/스승님 입장료 현장 별도 결제)
 3. 가능시간: 요청자의 날짜 시간 내 작성 (12~1시/1시간, 실전 레슨 시 13시~15시/2시간)
@@ -64,7 +64,7 @@
                     제안 수락 및 결제톡 발송
                 </button>
                 <button onclick="sendReject()" id="rejectBtn" class="w-full bg-slate-100 text-slate-500 font-black py-4 rounded-[1.5rem] hover:bg-red-50 hover:text-red-500 active:scale-95 transition-all text-sm">
-                    일정이 안 맞아요 (제안 거절)
+                    일정이 안 맞아요 (제안 거절 및 수정)
                 </button>
             </div>
         </div>
@@ -84,7 +84,6 @@
         const personCount = params.get('personCount') || "1인";
         const club = params.get('club') || ""; 
         const note = params.get('note') || params.get('concern') || "";
-        const LOCATION = params.get('LOCATION') || "";
 
         const isOneOnOne = rawType.includes('1:1');
         let sendType = isOneOnOne ? "1:1레슨" : (rawType === "레슨" ? "맞춤 레슨" : rawType);
@@ -107,7 +106,7 @@
             }
         };
 
-        // 거절 기능 추가
+        // 거절 기능
         async function sendReject() {
             if (!confirm("정말 이 레슨을 거절하시겠습니까?\n거절 시 고객에게 재매칭 안내가 발송됩니다.")) return;
             
@@ -116,43 +115,43 @@
             rejectBtn.innerText = "거절 처리 중...";
 
             const payload = {
-    action: "accept",              // 1. action을 "accept"로 고정
-    requestId: requestId,          // 2. K열 추적용 ID
-    name: name,                    // 3. B열: 고객 성함
-    phone: contact,                // 4. C열: 고객 번호 (contact -> phone)
-    type: sendType,                // 5. D열: 레슨 타입
-    price: price,                  // 6. E열: 가격
-    selectedPro: selectedPro,      // 7. F열: 담당 프로 (selectedpro -> selectedPro)
-    proPhone: proContact,          // 8. G열: 프로 번호 (proContact -> proPhone)
-    schedule: schedule,            // 9. H열: 레슨 일정
-    location: location,            // 10. I열: 장소 (LOCATION -> location)
-    note: noteInput || "안내없음",   // 추가 데이터
-    status: "수락완료"               // J열에 들어갈 상태
-};
+                requestId: requestId,
+                name: name,
+                contact: contact,
+                type: sendType,
+                status: "거절됨",
+                action: "reject"
+            };
 
             try {
-                // 자피어 거절 훅 (새로 만드실 훅 주소로 교체 필요)
+                await fetch("https://script.google.com/macros/s/AKfycbwJ8jcshxR6HcNknmLkjRdeT0NMw8d4-o9Z1hAWxdryi8pzocXZveDp_pmF1PpnKkcF/exec", {
+                    method: "POST", mode: "no-cors", body: JSON.stringify(payload)
+                });
+
                 await fetch("https://hooks.zapier.com/hooks/catch/27197789/ujl6khu/", { 
                     method: "POST", mode: "no-cors", body: JSON.stringify(payload) 
                 });
+
                 alert("레슨 거절이 완료되었습니다.");
                 window.location.href = "https://pf.kakao.com/_kxawRn/chat";
             } catch (e) {
                 alert("에러가 발생했습니다.");
                 rejectBtn.disabled = false;
+                rejectBtn.innerText = "일정이 안 맞아요 (제안 거절)";
             }
         }
 
+        // 수락 기능
         async function sendAccept() {
-            const price = document.getElementById('finalPriceInput').value;
-            const location = document.getElementById('lessonLocation').value;
-            const noteInput = document.getElementById('proNote').value;
-            const submitBtn = document.getElementById('submitBtn');
+    const price = document.getElementById('finalPriceInput').value;
+    const locationInput = document.getElementById('lessonLocation').value; // 1. 여기서 변수명 선언
+    const noteInput = document.getElementById('proNote').value;
+    const submitBtn = document.getElementById('submitBtn');
 
-            if (!price || parseInt(price) < 100) return alert("올바른 가격을 입력해주세요!");
-            if (!location) return alert("레슨 장소를 입력해주세요!");
+    if (!price || parseInt(price) < 100) return alert("올바른 가격을 입력해주세요!");
+    if (!locationInput) return alert("레슨 장소를 입력해주세요!");
 
-            const combinedText = (location + noteInput).replace(/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/g, "").toLowerCase();
+    const combinedText = (locationInput + noteInput).replace(/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/g, "").toLowerCase();
             const phoneRegex = /(010|011|016|017|018|019)\d{7,8}/;
             const serialNumberRegex = /\d{7,11}/; 
             const krPhoneRegex = /(공|영)(일)(공|영)/;
@@ -190,49 +189,53 @@
             submitBtn.disabled = true;
             submitBtn.innerText = "처리 중...";
 
-            const paymentUrl = `https://rlaeodn1015-oss.github.io/ssnim-request-landing/pay.html?requestId=${requestId}&price=${price}&name=${encodeURIComponent(name)}&type=${encodeURIComponent(sendType)}&selectedPro=${encodeURIComponent(selectedPro)}&proPhone=${proContact}&LOCATION=${encodeURIComponent(location)}&schedule=${encodeURIComponent(schedule)}&personCount=${encodeURIComponent(personCount)}`;
+            const paymentUrl = `https://rlaeodn1015-oss.github.io/ssnim-request-landing/pay.html?requestId=${requestId}&price=${price}&name=${encodeURIComponent(name)}&type=${encodeURIComponent(sendType)}&selectedPro=${encodeURIComponent(selectedPro)}&proPhone=${proContact}&LOCATION=${encodeURIComponent(locationInput)}&schedule=${encodeURIComponent(schedule)}&personCount=${encodeURIComponent(personCount)}`;
             
             const payload = {
-        requestId: requestId,          // U열 (인덱스 20) 매칭용 필수값
-        name: name,                    // A열
-        contact: contact,              // B열
-        LOCATION: location,            // C열 & M열 (스크립트에서 대문자 LOCATION으로 처리함)
-        type: sendType,                // D열
-        lessonCount: lessonCount,      // E열
-        club: club,                    // F열
-        concern: note,                 // G열
-        selectedPro: selectedPro,      // H열
-        proPhone: proContact,          // I열
-        SCHEDULE: schedule,            // K열 (스크립트에서 대문자 SCHEDULE 대응)
-        price: price,                  // L열 (최종견적가)
-        PRONOTE: noteInput,            // N열 (스크립트에서 대문자 PRONOTE 대응)
-        personCount: personCount,      // R열
-        paymentUrl: paymentUrl         // 알림톡 발송용 (자피어용)
+                requestId: requestId,          // U열 (INDEX 20)
+                name: name,                    // A열
+                contact: contact,              // B열
+                LOCATION: locationInput,       // C열 & M열
+                type: sendType,                // D열
+                lessonCount: lessonCount,      // E열
+                club: club,                    // F열
+                concern: note,                 // G열
+                selectedPro: selectedPro,      // H열
+                proPhone: proContact,          // I열
+                SCHEDULE: schedule,            // K열
+                price: price,                  // L열
+                PRONOTE: noteInput,            // N열
+                personCount: personCount,      // R열
+                status: "수락완료",             // O열
+                paymentUrl: `https://rlaeodn1015-oss.github.io/ssnim-request-landing/pay.html?requestId=${requestId}&price=${price}&name=${encodeURIComponent(name)}&type=${encodeURIComponent(sendType)}&selectedPro=${encodeURIComponent(selectedPro)}&proPhone=${proContact}&LOCATION=${encodeURIComponent(locationInput)}&schedule=${encodeURIComponent(schedule)}&personCount=${encodeURIComponent(personCount)}`
     };
 
             try {
-        await fetch("https://script.google.com/macros/s/AKfycbwJ8jcshxR6HcNknmLkjRdeT0NMw8d4-o9Z1hAWxdryi8pzocXZveDp_pmF1PpnKkcF/exec", {
-            method: "POST", 
-            mode: "no-cors", 
-            body: JSON.stringify(payload)
-        });
+                // 1. 구글 시트 저장
+                await fetch("https://script.google.com/macros/s/AKfycbwJ8jcshxR6HcNknmLkjRdeT0NMw8d4-o9Z1hAWxdryi8pzocXZveDp_pmF1PpnKkcF/exec", {
+                    method: "POST", 
+                    mode: "no-cors", 
+                    body: JSON.stringify(payload)
+                });
                 
-const ZAPIER_EXTERNAL = "https://hooks.zapier.com/hooks/catch/27197789/ujl6khu/";
-        const ZAPIER_1ON1 = "https://hooks.zapier.com/hooks/catch/27197789/ujdmj18/";
-        const webhookUrl = sendType.includes('1:1') ? ZAPIER_1ON1 : ZAPIER_EXTERNAL;
+                // 2. 자피어 알림톡 전송
+                const ZAPIER_EXTERNAL = "https://hooks.zapier.com/hooks/catch/27197789/ujl6khu/";
+                const ZAPIER_1ON1 = "https://hooks.zapier.com/hooks/catch/27197789/ujdmj18/";
+                const webhookUrl = sendType.includes('1:1') ? ZAPIER_1ON1 : ZAPIER_EXTERNAL;
 
-               await fetch(webhookUrl, { 
-            method: "POST", 
-            mode: "no-cors", 
-            body: JSON.stringify(payload) 
-        });
+                await fetch(webhookUrl, { 
+                    method: "POST", 
+                    mode: "no-cors", 
+                    body: JSON.stringify(payload) 
+                });
+
                 alert(sendType.includes('1:1') ? "✅ 1:1 레슨 매칭 수락 완료!" : "✅ 레슨 수락 및 결제톡 발송 완료!");
                 window.location.href = "https://pf.kakao.com/_kxawRn/chat"; 
 
             } catch (err) {
                 alert("🚨 에러 발생: " + err.message);
                 submitBtn.disabled = false;
-                submitBtn.innerText = "레슨 승인 및 카톡 발송";
+                submitBtn.innerText = "제안 수락 및 결제톡 발송";
             }
         }
     </script>
