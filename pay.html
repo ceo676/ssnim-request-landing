@@ -53,10 +53,11 @@
         </div>
 
         <div class="mb-4 space-y-2">
-    <p class="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">성함 (실명)</p>
-    <input type="text" id="user-name-input" placeholder="실명을 입력해주세요" 
-        class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-600 font-bold text-slate-700 transition-all">
-</div>
+            <p class="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">성함 (실명)</p>
+            <input type="text" id="user-name-input" placeholder="실명을 입력해주세요" 
+                class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-600 font-bold text-slate-700 transition-all">
+        </div>
+
         <div class="mb-6 space-y-2">
             <p class="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">알림톡 받으실 번호</p>
             <input type="tel" id="user-phone" placeholder="번호만 입력 (- 제외)" 
@@ -85,39 +86,20 @@
     window.onload = async () => {
         const params = new URLSearchParams(window.location.search);
 
+        // --- [결제 완료 후 처리 로직] ---
         if (params.get('status') === 'done') {
-            document.getElementById('payment-box').innerHTML = "<div class='py-20 text-center font-bold text-blue-600'>결제 정보를 처리 중입니다...</div>";
+            document.getElementById('payment-box').innerHTML = `
+                <div class='py-20 text-center'>
+                    <div class='animate-spin inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mb-4'></div>
+                    <p class='font-bold text-blue-600'>예약 정보를 안전하게 기록 중입니다...<br>잠시만 기다려주세요.</p>
+                </div>`;
             
             const reqId = params.get('requestId');
             const paidAmt = params.get('price');
             const userName = params.get('name') || "고객";
-            const lessonType = params.get('type') || ""; // 레슨 타입 추출
-            const userPhone = params.get('phone') || ""; // 수신 전화번호 추출
+            const userPhone = params.get('phone') || "";
+            const lessonType = params.get('type') || "";
 
-            // --- [핵심] 조인레슨만 선택적으로 알림톡 자피어 호출 ---
-            if (userPhone && lessonType.includes("조인")) {
-                const solapiZapierUrl = "https://hooks.zapier.com/hooks/catch/27197789/4y901so/"; 
-                fetch(solapiZapierUrl, {
-                    method: "POST",
-                    mode: "no-cors",
-                    body: JSON.stringify({
-                        "status": "paid",
-                        "phone": userPhone,
-                        "name": userName,
-                        "price": paidAmt,
-                        "type": lessonType,
-                        "personCount": params.get('personCount'),
-                        "selectedPro": params.get('selectedPro'),
-                        "proPhone": params.get('proPhone'),
-                        "schedule": params.get('schedule'),
-                        "location": params.get('LOCATION'),
-                        "requestId": reqId
-                    })
-                });
-                console.log("조인레슨 확인: 즉시 알림톡 발송 완료");
-            }
-
-            // 구글 시트 업데이트용 데이터
             const updateData = {
                 action: "updatePayment",
                 status: "paid",
@@ -126,28 +108,42 @@
                 name: userName
             };
 
-            // 메인 자피어 (구글 시트 연동 등 공통 작업)
             const zapierUrl = "https://hooks.zapier.com/hooks/catch/27197789/ujdmj18/";
             const zapierData = {
                 status: "paid",
                 requestId: reqId,
                 price: paidAmt,
                 name: userName,
-                personCount: params.get('personCount') || "1인"
+                phone: userPhone,
+                type: lessonType,
+                personCount: params.get('personCount') || "1인",
+                selectedPro: params.get('selectedPro') || "",
+                proPhone: params.get('proPhone') || "",
+                schedule: params.get('schedule') || "",
+                location: params.get('LOCATION') || ""
             };
 
             try {
-                // 구글 시트 업데이트
+                // 1. 구글 시트 업데이트 시도
                 await fetch("https://script.google.com/macros/s/AKfycbwJ8jcshxR6HcNknmLkjRdeT0NMw8d4-o9Z1hAWxdryi8pzocXZveDp_pmF1PpnKkcF/exec", { 
                     method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(updateData) 
                 });
 
-                // 메인 자피어 호출
+                // 2. 메인 자피어 호출
                 await fetch(zapierUrl, {
                     method: "POST", mode: "no-cors",
                     body: JSON.stringify(zapierData)
                 });
+
+                // 3. 조인레슨 전용 알림톡 호출
+                if (userPhone && lessonType.includes("조인")) {
+                    const solapiZapierUrl = "https://hooks.zapier.com/hooks/catch/27197789/4y901so/"; 
+                    await fetch(solapiZapierUrl, {
+                        method: "POST", mode: "no-cors",
+                        body: JSON.stringify(zapierData)
+                    });
+                }
 
                 location.replace("success.html?v=" + new Date().getTime());
             } catch (e) {
@@ -157,6 +153,7 @@
             return;
         }
 
+        // --- [초기 페이지 로드 로직] ---
         const priceParam = params.get('price') || "0";
         rawPrice = parseInt(priceParam.replace(/[^0-9]/g, '')) || 0; 
         name = params.get('name') || "고객님";
@@ -164,7 +161,6 @@
         globalProPhone = params.get('proPhone') || "";
         
         const lessonType = params.get('type') || "레슨";
-
         const isOneOnOne = lessonType.includes('1:1') || lessonType === '레슨' || lessonType === '1' || lessonType.trim() === '';
         const match = lessonType.match(/\d+/);
         personCount = (match && parseInt(match[0]) > 1) ? parseInt(match[0]) : 1;
@@ -197,44 +193,44 @@
     }
 
     async function requestBootpay() {
-    const params = new URLSearchParams(window.location.search);
-    
-    const nameInput = document.getElementById('user-name-input').value.trim();
-    const phoneInput = document.getElementById('user-phone').value.replace(/[^0-9]/g, '');
+        const params = new URLSearchParams(window.location.search);
+        const nameInput = document.getElementById('user-name-input').value.trim();
+        const phoneInput = document.getElementById('user-phone').value.replace(/[^0-9]/g, '');
 
-    if (!nameInput) return alert("성함을 입력해주세요."); 
-    if (phoneInput.length < 10) return alert("알림톡을 받을 정확한 핸드폰 번호를 입력해주세요.");
-    if (finalPayPrice < 100) return alert("결제 금액이 너무 낮습니다.");
-
-    const successRedirect = window.location.origin + window.location.pathname + 
-    "?status=done&requestId=" + requestId + 
-    "&price=" + finalPayPrice + 
-    "&name=" + encodeURIComponent(nameInput) +  
-    "&phone=" + phoneInput + 
-    "&proPhone=" + encodeURIComponent(globalProPhone) +
-    "&type=" + encodeURIComponent(params.get('type') || "레슨") + 
-    "&selectedPro=" + encodeURIComponent(params.get('selectedPro') || "") + 
-    "&schedule=" + encodeURIComponent(params.get('schedule') || "") + 
-    "&LOCATION=" + encodeURIComponent(params.get('LOCATION') || "");
+        if (!nameInput) return alert("성함을 입력해주세요.");
+        if (phoneInput.length < 10) return alert("알림톡을 받을 정확한 핸드폰 번호를 입력해주세요.");
+        if (finalPayPrice < 100) return alert("결제 금액이 너무 낮습니다.");
         
-    Bootpay.requestPayment({
-        "application_id": "67ecd171d9af4e5c6d21736b",
-        "price": finalPayPrice,
-        "order_name": "스승님 골프 레슨비",
-        "order_id": requestId,
-        "pg": "nicepay",
-        "methods": ["card", "kakaopay"],
-        "user": { "username": nameInput },
-        "extra": { 
-            "open_type": "redirect", 
-            "display_success_result": false, 
-            "redirect_url": successRedirect, 
-            "v2_redirect_mode": false,
-            "popup": false,
-            "method": "GET"
-        }
-    });
-}
+        const successRedirect = window.location.origin + window.location.pathname + 
+        "?status=done&requestId=" + requestId + 
+        "&price=" + finalPayPrice + 
+        "&name=" + encodeURIComponent(nameInput) + 
+        "&personCount=" + encodeURIComponent(personCount + "인") +
+        "&phone=" + phoneInput + 
+        "&proPhone=" + encodeURIComponent(globalProPhone) +
+        "&type=" + encodeURIComponent(params.get('type') || "레슨") + 
+        "&selectedPro=" + encodeURIComponent(params.get('selectedPro') || "") + 
+        "&schedule=" + encodeURIComponent(params.get('schedule') || "") + 
+        "&LOCATION=" + encodeURIComponent(params.get('LOCATION') || "");
+            
+        Bootpay.requestPayment({
+            "application_id": "67ecd171d9af4e5c6d21736b",
+            "price": finalPayPrice,
+            "order_name": "스승님 골프 레슨비",
+            "order_id": requestId,
+            "pg": "nicepay",
+            "methods": ["card", "kakaopay"],
+            "user": { "username": nameInput },
+            "extra": { 
+                "open_type": "redirect", 
+                "display_success_result": false, 
+                "redirect_url": successRedirect, 
+                "v2_redirect_mode": false,
+                "popup": false,
+                "method": "GET"
+            }
+        });
+    }
 
     function sharePaymentLink() {
         const currentUrl = window.location.href;
