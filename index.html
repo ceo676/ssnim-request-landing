@@ -219,6 +219,17 @@
 
         const html = htm.bind(React.createElement);
         const KAKAO_CHAT_URL = "https://pf.kakao.com/_kxawRn/chat";
+        const Header = ({ visitorCount }) => html`<header class="p-4 bg-white border-b font-black text-center text-xl">스승님 (현재 ${visitorCount}명 접속 중)</header>`;
+const HeroSection = ({ setFormOpen }) => html`
+    <section class="py-20 gradient-blue text-white text-center">
+        <h1 class="text-3xl md:text-5xl font-black mb-4">결과로 증명하는 맞춤 골프레슨</h1>
+        <button onClick=${() => setFormOpen(true)} class="mt-6 bg-white text-brand-blue font-black px-8 py-4 rounded-2xl shadow-lg">AI 매칭 시작하기</button>
+    </section>
+`;
+const ServiceIntroSection = () => html`<div class="p-4 bg-slate-50 rounded-2xl my-4 text-center font-bold text-sm">대한민국 No.1 골프 레슨 매칭 서비스</div>`;
+const BannerSlider = () => html`<div class="mySwiper overflow-hidden h-20 bg-blue-50 rounded-2xl flex items-center justify-center font-bold text-brand-blue">🔥 지금 신청 시 런칭 이벤트 자동 응모!</div>`;
+const ProblemSection = () => html`<div class="py-12 bg-white text-center font-black">아직도 나에게 맞지 않는 연습장 레슨만 반복하고 계신가요?</div>`;
+const HowItWorks = () => html`<div class="py-12 bg-slate-50 text-center font-black">요청서 작성 ➔ AI 정밀 매칭 ➔ 맞춤형 실전 레슨 시작</div>`;
         const BOT_TOKEN = "8696133005:AAF8Uh6gK0hufHuQyufAkmZhUcjGpYCAxzE";
         const CHAT_ID = "5955006042";
 
@@ -1317,7 +1328,8 @@ const submitRequest = async () => {
     schedule: `${formData.lessonDate} / ${formData.schedule}`, 
 
     finalPrice: formData.price,    
-    personCount: formData.lessonCount || "1인", 
+personCount: formData.lessonCount || "1인", 
+requestId: `REQ_${new Date().getTime()}`
 
     requestId: requestId           
 };
