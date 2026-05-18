@@ -202,36 +202,36 @@
 <body class="overflow-x-hidden bg-white text-left">
     <div id="root"></div>
 
-    <script type="module">
-        // 📍 대표님께서 의도하신 대로 /js/ 폴더 내부에서 땡겨오도록 슬래시 상대경로를 정확히 맞췄습니다.
-        import { pros } from "./js/prosData.js";
-        import { ProFaceSlider } from "./js/proslider.js";
-        
-        import React from "react";
-        import { createRoot } from "react-dom/client";
-        import htm from "htm";
-        import {
-            Smartphone, HelpCircle, CheckCircle2, Filter, ArrowRight, PenLine, BadgeCheck, X,
-            TrendingUp, Award, ShieldCheck, MessageCircle, Gift, Sparkles, ClipboardList,
-            CreditCard, RefreshCcw, Info, Star, Check, Search, CalendarDays, MessageSquareText, ThumbsUp,
-            MapPin, Flag, Target, Clock, ChevronRight, UserCheck, ShieldAlert, Zap, User, UserPlus
-        } from "lucide-react";
+   <script type="module">
+    // 1단계: 외부 파일 및 라이브러리 가져오기 (import는 무조건 최상단에 모아야 합니다)
+    import { pros } from "./js/prosData.js";
+    import { ProFaceSlider } from "./js/proslider.js";
+    import React from "react";
+    import { createRoot } from "react-dom/client";
+    import htm from "htm";
+    import {
+        Smartphone, HelpCircle, CheckCircle2, Filter, ArrowRight, PenLine, BadgeCheck, X,
+        TrendingUp, Award, ShieldCheck, MessageCircle, Gift, Sparkles, ClipboardList,
+        CreditCard, RefreshCcw, Info, Star, Check, Search, CalendarDays, MessageSquareText, ThumbsUp,
+        MapPin, Flag, Target, Clock, ChevronRight, UserCheck, ShieldAlert, Zap, User, UserPlus
+    } from "lucide-react";
 
-        const html = htm.bind(React.createElement);
-        const KAKAO_CHAT_URL = "https://pf.kakao.com/_kxawRn/chat";
-        const Header = ({ visitorCount }) => html`<header class="p-4 bg-white border-b font-black text-center text-xl">스승님 (현재 ${visitorCount}명 접속 중)</header>`;
-const HeroSection = ({ setFormOpen }) => html`
-    <section class="py-20 gradient-blue text-white text-center">
-        <h1 class="text-3xl md:text-5xl font-black mb-4">결과로 증명하는 맞춤 골프레슨</h1>
-        <button onClick=${() => setFormOpen(true)} class="mt-6 bg-white text-brand-blue font-black px-8 py-4 rounded-2xl shadow-lg">AI 매칭 시작하기</button>
-    </section>
-`;
-const ServiceIntroSection = () => html`<div class="p-4 bg-slate-50 rounded-2xl my-4 text-center font-bold text-sm">대한민국 No.1 골프 레슨 매칭 서비스</div>`;
-const BannerSlider = () => html`<div class="mySwiper overflow-hidden h-20 bg-blue-50 rounded-2xl flex items-center justify-center font-bold text-brand-blue">🔥 지금 신청 시 런칭 이벤트 자동 응모!</div>`;
-const ProblemSection = () => html`<div class="py-12 bg-white text-center font-black">아직도 나에게 맞지 않는 연습장 레슨만 반복하고 계신가요?</div>`;
-const HowItWorks = () => html`<div class="py-12 bg-slate-50 text-center font-black">요청서 작성 ➔ AI 정밀 매칭 ➔ 맞춤형 실전 레슨 시작</div>`;
-        const BOT_TOKEN = "8696133005:AAF8Uh6gK0hufHuQyufAkmZhUcjGpYCAxzE";
-        const CHAT_ID = "5955006042";
+    const html = htm.bind(React.createElement);
+    const KAKAO_CHAT_URL = "https://pf.kakao.com/_kxawRn/chat";
+    const BOT_TOKEN = "8696133005:AAF8Uh6gK0hufHuQyufAkmZhUcjGpYCAxzE";
+    const CHAT_ID = "5955006042";
+
+    const Header = ({ visitorCount }) => html`<header class="p-4 bg-white border-b font-black text-center text-xl">스승님 (현재 ${visitorCount}명 접속 중)</header>`;
+    const HeroSection = ({ setFormOpen }) => html`
+        <section class="py-20 gradient-blue text-white text-center">
+            <h1 class="text-3xl md:text-5xl font-black mb-4">결과로 증명하는 맞춤 골프레슨</h1>
+            <button onClick=${() => setFormOpen(true)} class="mt-6 bg-white text-brand-blue font-black px-8 py-4 rounded-2xl shadow-lg">AI 매칭 시작하기</button>
+        </section>
+    `;
+    const ServiceIntroSection = () => html`<div class="p-4 bg-slate-50 rounded-2xl my-4 text-center font-bold text-sm">대한민국 No.1 골프 레슨 매칭 서비스</div>`;
+    const BannerSlider = () => html`<div class="mySwiper overflow-hidden h-20 bg-blue-50 rounded-2xl flex items-center justify-center font-bold text-brand-blue">🔥 지금 신청 시 런칭 이벤트 자동 응모!</div>`;
+    const ProblemSection = () => html`<div class="py-12 bg-white text-center font-black">아직도 나에게 맞지 않는 연습장 레슨만 반복하고 계신가요?</div>`;
+    const HowItWorks = () => html`<div class="py-12 bg-slate-50 text-center font-black">요청서 작성 ➔ AI 정밀 매칭 ➔ 맞춤형 실전 레슨 시작</div>`;
 
        const FieldReviewSection = () => {
     return html`
