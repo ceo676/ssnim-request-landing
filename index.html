@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="ko">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -202,6 +204,7 @@
 
     <script type="module">
         import { pros } from "./prosData.js";
+        import { ProFaceSlider } from "./js/proslider.js";
         import React from "react";
         import { createRoot } from "react-dom/client";
         import htm from "htm";
@@ -730,60 +733,6 @@ const RealTimeStatus = () => {
                 <div className="fade-mask"></div>
             </div>
         </div>
-    `;
-};
-
-        const ProFaceSlider = () => {
-    const prosImg = [
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/KakaoTalk_20260327_165459882.png",
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/JYH.jpg",
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/KakaoTalk_20260309_200933587.jpg",
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/SJH.png",
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/HJY.png",
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/YHC.png",
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/JDY.png",
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/KNY.jpg",
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/lwy.webp",
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/YMH.png",
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/kdy.webp",
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/KTY.png",
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/LSJ.png",
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/KDW.jpg", 
-        "https://rlaeodn1015-oss.github.io/ssnim-request-landing/images/LGH.webp",
-    ];
-
-            const rollingPros = [...prosImg, ...prosImg];
-
-    return html`
-        <section class="py-6 bg-white overflow-hidden relative">
-            <div class="flex items-center">
-                <div class="flex animate-infinite-scroll space-x-8">
-                    ${rollingPros.map((imgSrc, i) => html`
-                        <div class="flex-none w-24" key=${i}>
-                            <div class="relative aspect-square rounded-full overflow-hidden border-2 border-slate-100 shadow-sm transition-transform hover:scale-110">
-                                <img src="${imgSrc}" class="w-full h-full object-cover" loading="lazy" />
-                            </div>
-                        </div>
-                    `)}
-                </div>
-            </div>
-
-            <style>
-                @keyframes infinite-scroll {
-                    from { transform: translateX(0); }
-                    to { transform: translateX(-50%); }
-                }
-                .animate-infinite-scroll {
-                    display: flex;
-                    width: max-content;
-                    animation: infinite-scroll 40s linear infinite;
-                    will-change: transform;
-                }
-                .animate-infinite-scroll:hover {
-                    animation-play-state: paused;
-                }
-            </style>
-        </section>
     `;
 };
 
@@ -1758,7 +1707,7 @@ const submitRequest = async () => {
         status: "accepted" 
     };
 
-    const telegramMessage = `🔥 [${isFixedPrice ? '패키지' : '견적요청'}] 매칭 발생\n\n👤 이름: ${payload.name}\n📞 연락처: ${payload.contact}\n📍 지역: ${payload.location}\n⛳ 레슨: ${payload.type}\n🏌️ 클럽: ${payload.club}\n💥 문제: ${payload.concern}\n⏰ 시간: ${payload.schedule}\n🏆 선택 프로: ${payload.selectedpro}\n💰 가격: ${Moses(payload.price).toLocaleString()}원`;
+    const telegramMessage = `🔥 [${isFixedPrice ? '패키지' : '견적요청'}] 매칭 발생\n\n👤 이름: ${payload.name}\n📞 연락처: ${payload.contact}\n📍 지역: ${payload.location}\n⛳ 레슨: ${payload.type}\n🏌️ 클럽: ${payload.club}\n💥 문제: ${payload.concern}\n⏰ 시간: ${payload.schedule}\n🏆 선택 프로: ${payload.selectedpro}\n💰 가격: ${Number(payload.price).toLocaleString()}원`;
 
     try {
         fetch("https://script.google.com/macros/s/AKfycbwJ8jcshxR6HcNknmLkjRdeT0NMw8d4-o9Z1hAWxdryi8pzocXZveDp_pmF1PpnKkcF/exec", {
@@ -2593,3 +2542,4 @@ setTimeout(() => {
 }, 500);     
 </script>
 </body>
+</html>
